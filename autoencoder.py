@@ -87,19 +87,11 @@ class Autoencoder(object):
       single_partial_deriv_b, single_partial_deriv_w = self.backprop(x, x)
       assert(np.array(single_partial_deriv_w).shape == np.array(partial_deriv_w).shape)
       partial_deriv_b = partial_deriv_b + np.array(single_partial_deriv_b)
-      #print partial_deriv_w
-      #print single_partial_deriv_w
       partial_deriv_w = partial_deriv_w + single_partial_deriv_w
-      #partial_deriv_b = [pdb+spdb for pdb, spdb in zip(partial_deriv_b, single_partial_deriv_b)]
-      #partial_deriv_w = [pdw+spdw for pdw, spdw in zip(partial_deriv_w, single_partial_deriv_w)]
     # Update the weights and biases using the calculated partial derivatives.
     self.biases = np.array(self.biases) - (learning_coef/len(batch))*partial_deriv_b
     self.weights = np.array(self.weights) - (learning_coef/len(batch))*partial_deriv_w
-    '''self.biases = [b-(learning_coef/len(batch))*deriv_b
-                   for b, deriv_b in zip(self.biases, partial_deriv_b)]
-    self.weights = [w-(learning_coef/len(batch))*deriv_w
-                    for w, deriv_w in zip(self.weights, partial_deriv_w)]
-    '''
+
   '''
   Return a tuple (partial_deriv_b, partial_deriv_w) representing the gradient
   for the cost function. The partial derivatives are of the cost function with
