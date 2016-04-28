@@ -47,7 +47,10 @@ class Autoencoder(object):
   batch_size - size of each batch used in SGD
   learning_coef - tunable parameter that determines how quickly the model learns
   '''
-  def sgd(self, training_data, epochs, batch_size, learning_coef):
+  def sgd(self, training_data, epochs, batch_size, learning_coef, test_data=None):
+    track_progress = False
+    if test_data:
+      track_progress = True
     n = len(training_data)
     for i in xrange(epochs):
       print(i)
@@ -63,6 +66,7 @@ class Autoencoder(object):
         print(j)
         j = j + 1
         self.sgd_helper(batch, learning_coef)
+        print "Average MSE error over test set: %f" % self.test(test_data)
   
   '''
   Single iteration of stochastic gradient descent.
@@ -136,6 +140,21 @@ class Autoencoder(object):
       partial_deriv_w[l] = np.dot(errors, np.transpose(activations[l]))
     
     return (partial_deriv_b, partial_deriv_w)
+  
+  ''' Return the squared error.
+  '''
+  def mse(self, x, y):
+    assert(x.shape == y.shape)
+    return sum((x - y)*(x - y))/len(x)
+
+  '''
+  Feed every test input forward through the network and calculate the error
+  of the output. Each wrongly classified digit is an error.
+  '''
+  def test(self, test_data):
+    output = [self.feedforward(x) for x in test_data]
+    error = sum([self.mse(x, y) for (x, y) in zip(test_data, output)])
+    return error/len(test_data)
 
 def sigmoid(x):
   return 1.0/(1.0 + np.exp(-x))
