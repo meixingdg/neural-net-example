@@ -8,6 +8,7 @@ A module that implements an autoencoder using a feedforward neural network as a 
 '''
 
 import numpy as np
+import random
 
 class Autoencoder(object):
   '''
@@ -16,16 +17,15 @@ class Autoencoder(object):
   ex. [12, 5, 12] is a three layer network with input and output layers of size
       12 and a single hidden layer of size 5.
   '''
-  def __init__(self, sizes):
-    assert(sizes[0] == sizes[-1])
-    self.num_layers = len(sizes)
-    self.sizes = sizes
+  def __init__(self, input_size, hidden_size):
+    self.num_layers = 3
+    self.sizes = [input_size, hidden_size, input_size]
     # One bias value for each neuron in each layer.
-    self.biases = [np.random.randn(x, 1) for x in sizes[1:]]
+    self.biases = [np.random.randn(x, 1) for x in self.sizes[1:]]
     # One weight value connecting each neuron in one layer to each in the
     # next layer. 
     self.weights = [np.random.randn(y, x) 
-		    for x, y in zip(sizes[:-1], sizes[1:])] 
+		    for x, y in zip(self.sizes[:-1], self.sizes[1:])]
 
   '''
   Take the input as a vector (list of numbers) and returns the output from
@@ -41,8 +41,7 @@ class Autoencoder(object):
   '''
   Run batch stochastic gradient descent (SGD).
   @args
-  training_data - list of tuples (x, y) each representing an input and the
-                  corresponding output
+  training_data - list of inputs x (which is also the desired output)
   epochs - number of iterations to run training for, where each iteration is
            a complete pass through all of the training data points
   batch_size - size of each batch used in SGD
@@ -51,6 +50,7 @@ class Autoencoder(object):
   def sgd(self, training_data, epochs, batch_size, learning_coef):
     n = len(training_data)
     for i in xrange(epochs):
+      print(i)
       # Randomize the training data so the order that the data is given in
       # does not influence the training.
       random.shuffle(training_data)
@@ -58,14 +58,16 @@ class Autoencoder(object):
       batches = [training_data[batch_index:batch_index+batch_size]
                  for batch_index in xrange(0, n, batch_size)]
       # Run an iteration of stochastic gradient descent for each batch.
+      j = 0
       for batch in batches:
+        print(j)
+        j = j + 1
         self.sgd_helper(batch, learning_coef)
   
   '''
   Single iteration of stochastic gradient descent.
   @args
-  batch - list of tuples (x, y) each representing an input and the
-          corresponding output
+  batch - list of x each representing an input (is also the desired output)
   learning_coef - tunable parameter that determines how large each step of
                   learning is
   '''    
@@ -73,28 +75,39 @@ class Autoencoder(object):
     # Make zero vectors that are the same shape as the current biases and
     # weights to store values for the partial derivatives with respect
     # to each bias and weight value.
-    partial_deriv_b = [np.zeros(b_.shape) for b_ in self.biases]
-    partial_deriv_w = [np.zeros(w_.shape) for w_ in self.weights]
+    partial_deriv_b = np.array([np.zeros(b_.shape) for b_ in self.biases])
+    partial_deriv_w = np.array([np.zeros(w_.shape) for w_ in self.weights])
     # Go through each example in the batch and sum up the partial
     # derivatives from each with respect to b and w.
-    for x, y in batch:
-      single_partial_deriv_b, single_partial_deriv_w = self.backprop(x, y)
-      partial_deriv_b = [pdb+spdb for pdb, spdb in zip(partial_deriv_b, single_partial_deriv_b)]
-      partial_deriv_w = [pdw+spdw for pdw, spdw in zip(partial_deriv_w, single_partial_deriv_w)]
+    for x in batch:
+      single_partial_deriv_b, single_partial_deriv_w = self.backprop(x, x)
+      partial_deriv_b = partial_deriv_b + np.array(single_partial_deriv_b)
+      partial_deriv_w = partial_deriv_w + np.array(single_partial_deriv_w)
+      #partial_deriv_b = [pdb+spdb for pdb, spdb in zip(partial_deriv_b, single_partial_deriv_b)]
+      #partial_deriv_w = [pdw+spdw for pdw, spdw in zip(partial_deriv_w, single_partial_deriv_w)]
     # Update the weights and biases using the calculated partial derivatives.
-    self.biases = [b-(learning_coef/len(batch))*deriv_b
-                   for b, deriv_b in zip(self.biases, partial_deriv_b)]
-    self.weights = [w-(learning_coef/len(batch))*deriv_w
-                    for w, deriv_w in zip(self.weights, partial_deriv_w)]
+    self.biases = np.array(self.biases) - (learning_coef/len(batch))*partial_deriv_b
+    self.weights = np.array(self.weights) - (learning_coef/len(batch))*partial_deriv_w
+    #self.biases = [b-(learning_coef/len(batch))*deriv_b
+    #               for b, deriv_b in zip(self.biases, partial_deriv_b)]
+    #self.weights = [w-(learning_coef/len(batch))*deriv_w
+    #                for w, deriv_w in zip(self.weights, partial_deriv_w)]
 
   '''
   Return a tuple (partial_deriv_b, partial_deriv_w) representing the gradient
   for the cost function. The partial derivatives are of the cost function with
   respect to each bias and weight.
+  Cost function is the MSE: C = 1/2n*\sum_n||y - output||^2
+  @args
+  x - single input vector
+  y - single corresponding output vector
   '''
   def backprop(self, x, y):
+    x = x.reshape(-1, 1)
+    y = y.reshape(-1, 1)
+
     partial_deriv_b = [np.zeros(b.shape) for b in self.biases]
-    partial_deriv_w = [np.zeros(w.shape) for w in self.biases]
+    partial_deriv_w = [np.zeros(w.shape) for w in self.weights]
 
     # Feed input forward to calculate activations and z = wx + b of each layer.
     activation = x
@@ -104,11 +117,26 @@ class Autoencoder(object):
       z = np.dot(w, activation) + b
       zs.append(z)
       activation = sigmoid(z)
-      activations.append(activation)      
+      activations.append(activation) 
 
-    # TODO: finish
+    # Go through each layer backwards and propagate the error.
+    L = self.num_layers-1
+    print(np.array(activations).shape)
+    errors = (activations[L] - y)*sigmoid_deriv(zs[L-1])
+    # There's one less set of weights/biases than the number of layers
+    # because the input layer doesn't have weights or biases. 
+    partial_deriv_b[L-1] = errors
+    partial_deriv_w[L-1] = np.dot(errors, activations[L-2].transpose())
+    for l in xrange(L-2, 1, -1):
+      errors = np.dot(np.transpose(self.weights[l+1]), errors) \
+               * sigmoid_deriv(zs[l])
+      partial_deriv_b[l] = errors
+      partial_deriv_w[l] = np.dot(activations[l-1], errors)
+    
+    return (partial_deriv_b, partial_deriv_w)
 
+def sigmoid(x):
+  return 1.0/(1.0 + np.exp(-x))
 
-
-
-
+def sigmoid_deriv(x):
+  return sigmoid(x)*(1-sigmoid(x))
