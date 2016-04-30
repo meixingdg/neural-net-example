@@ -10,6 +10,10 @@ A module that implements an autoencoder using a feedforward neural network as a 
 import numpy as np
 import random
 
+# Generate deterministic output.
+np.random.seed(42)
+random.seed(42)
+
 class Autoencoder(object):
   '''
   sizes - list of numbers that determine the number of neurons in the various 
@@ -53,7 +57,6 @@ class Autoencoder(object):
       track_progress = True
     n = len(training_data)
     for i in xrange(epochs):
-      print(i)
       # Randomize the training data so the order that the data is given in
       # does not influence the training.
       random.shuffle(training_data)
@@ -63,10 +66,10 @@ class Autoencoder(object):
       # Run an iteration of stochastic gradient descent for each batch.
       j = 0
       for batch in batches:
-        print(j)
+        print "epoch: %i, batch number: %i" % (i, j)
         j = j + 1
         self.sgd_helper(batch, learning_coef)
-        print "Average MSE error over test set: %f" % self.test(test_data)
+        print "Average MSE error over test set: %f\n" % self.test(test_data)
   
   '''
   Single iteration of stochastic gradient descent.
@@ -145,6 +148,17 @@ class Autoencoder(object):
   '''
   def test(self, test_data):
     output = [self.feedforward(x) for x in test_data]
+    # Print output as predicted/actual) for each value in the first test example
+    # to visualize the reconstruction of values.
+    index = 0
+    non_zero_inds = np.nonzero(test_data[0])
+    i = 0
+    print 'actual -- predicted'
+    for (actual, predicted) in zip(test_data[0][non_zero_inds], output[0][non_zero_inds]):
+      print '%.2f -- %.2f' % (actual, predicted)
+      i = i + 1
+      if i > 10:
+        break
     error = sum([self.mse(x, y) for (x, y) in zip(test_data, output)])
     return error/len(test_data)
 
