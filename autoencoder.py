@@ -34,10 +34,17 @@ class Autoencoder(object):
   '''
   Take the input as a vector (list of numbers) and returns the output from
   passing through all of the layers.
+  @args
+  embed - if True, then output the activation from the layer before the output (the middle), which is
+          the embedding for the input
   '''
-  def feedforward(self, inputs):
+  def feedforward(self, inputs, embed=False):
     a = inputs
+    i = 0
     for b, w in zip(self.biases, self.weights):
+      if i == len(self.biases)-1:
+       break
+      i += 1
       # Take the input and then calculate each layer's activation.
       a = sigmoid(np.dot(w, a) + b)
     return a
@@ -69,8 +76,17 @@ class Autoencoder(object):
         print "epoch: %i, batch number: %i" % (i, j)
         j = j + 1
         self.sgd_helper(batch, learning_coef)
+      #print "epoch: %i" % i
+      if track_progress:
         print "Average MSE error over test set: %f\n" % self.test(test_data)
-  
+  """
+  '''
+  Add gaussian noise to each element of a vector.
+  '''
+  def add_noise(x):
+    result = [[num[0]+np.random.normal()] for num in x]
+    return result
+  """
   '''
   Single iteration of stochastic gradient descent.
   @args
@@ -86,8 +102,14 @@ class Autoencoder(object):
     partial_deriv_w = np.array([np.zeros(w_.shape) for w_ in self.weights])
     # Go through each example in the batch and sum up the partial
     # derivatives from each with respect to b and w.
-    for x in batch: 
-      single_partial_deriv_b, single_partial_deriv_w = self.backprop(x, x)
+    for x in batch:
+      y = x
+      # If doing a denoising autoencoder, then add Gaussian noise to the input to the network. 
+      # TODO: add self.denoising
+      #if self.denoising:
+      if True:
+         y = add_noise(x) 
+      single_partial_deriv_b, single_partial_deriv_w = self.backprop(x, y)
       assert(np.array(single_partial_deriv_w).shape == np.array(partial_deriv_w).shape)
       partial_deriv_b = partial_deriv_b + np.array(single_partial_deriv_b)
       partial_deriv_w = partial_deriv_w + single_partial_deriv_w
@@ -144,7 +166,7 @@ class Autoencoder(object):
 
   '''
   Feed every test input forward through the network and calculate the error
-  of the output. Each wrongly classified digit is an error.
+  of the output. The error is the mean squared error (MSE).
   '''
   def test(self, test_data):
     output = [self.feedforward(x) for x in test_data]
@@ -167,3 +189,11 @@ def sigmoid(x):
 
 def sigmoid_deriv(x):
   return sigmoid(x)*(1-sigmoid(x))
+
+'''
+Add gaussian noise to each element of a vector.
+'''
+def add_noise(x):
+  result = np.array([[num[0]+np.random.normal()] for num in x])
+  return result
+
