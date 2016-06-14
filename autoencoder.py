@@ -60,7 +60,7 @@ class Autoencoder(object):
   '''
   def sgd(self, training_data, epochs, batch_size, learning_coef, test_data=None):
     track_progress = False
-    if test_data:
+    if test_data is not None:
       track_progress = True
     n = len(training_data)
     for i in xrange(epochs):
