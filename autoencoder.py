@@ -42,7 +42,7 @@ class Autoencoder(object):
     a = inputs
     i = 0
     for b, w in zip(self.biases, self.weights):
-      if i == len(self.biases)-1:
+      if i == len(self.biases)-1 and embed:
        break
       i += 1
       # Take the input and then calculate each layer's activation.

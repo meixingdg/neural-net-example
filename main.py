@@ -25,7 +25,7 @@ def main():
   hidden_size = 100
   auto_enc = autoencoder.Autoencoder(input_size, hidden_size)
   #auto_enc.sgd(training_input, 5, 100, 3.0)
-  #auto_enc.sgd(training_input, 5, 100, 3.0, test_input)
+  auto_enc.sgd(training_input, 5, 100, 3.0, test_input)
   # Save the trained autoencoder to file.
   outfile = open("trained_autoencoder.pkl", "w")
   pickle.dump(auto_enc, outfile)
@@ -46,11 +46,13 @@ def visualize():
 
   # Encode all of the MNIST test set using the autoencoder.
   # TODO: get rid of debugging, do all points not just 50
-  autoencoder_encoded_vecs = [auto_enc.feedforward(test_inp, embed=True).transpose()[0] for test_inp in test_input[:50]]
+  print "Encoding MNIST using autoencoder..."
+  autoencoder_encoded_vecs = [auto_enc.feedforward(test_inp, embed=True).transpose()[0] for test_inp in test_input]
   print len(autoencoder_encoded_vecs)
-  print autoencoder_encoded_vecs[0]
-  print autoencoder_encoded_vecs[0].shape
+  # print autoencoder_encoded_vecs[0]
+  # print autoencoder_encoded_vecs[0].shape
   # Do dimensionality reduction into 2 dimensions using t-sne.
+  print "Performing dimensionality reduction using t-sne..."
   tsne = sklearn.manifold.TSNE()
   reduced_vecs = tsne.fit_transform(autoencoder_encoded_vecs)    
   print reduced_vecs[0]
@@ -66,6 +68,6 @@ def visualize():
   plt.show()
   
 if __name__ == "__main__":
-  #main()
+  main()
   visualize()
   
