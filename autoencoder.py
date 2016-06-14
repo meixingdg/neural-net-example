@@ -79,14 +79,7 @@ class Autoencoder(object):
       #print "epoch: %i" % i
       if track_progress:
         print "Average MSE error over test set: %f\n" % self.test(test_data)
-  """
-  '''
-  Add gaussian noise to each element of a vector.
-  '''
-  def add_noise(x):
-    result = [[num[0]+np.random.normal()] for num in x]
-    return result
-  """
+
   '''
   Single iteration of stochastic gradient descent.
   @args

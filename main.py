@@ -44,6 +44,7 @@ def visualize():
   test_target = [y for y in zip(*test_data)[1]]
   print test_target[0]
 
+  '''
   # Encode all of the MNIST test set using the autoencoder.
   # TODO: get rid of debugging, do all points not just 50
   print "Encoding MNIST using autoencoder..."
@@ -51,12 +52,16 @@ def visualize():
   print len(autoencoder_encoded_vecs)
   # print autoencoder_encoded_vecs[0]
   # print autoencoder_encoded_vecs[0].shape
+  '''
   # Do dimensionality reduction into 2 dimensions using t-sne.
   print "Performing dimensionality reduction using t-sne..."
   tsne = sklearn.manifold.TSNE()
+  # Try just using tsne on the raw MNIST digits data.
+  autoencoder_encoded_vecs = [inp.transpose()[0] for inp in test_input]
   reduced_vecs = tsne.fit_transform(autoencoder_encoded_vecs)    
   print reduced_vecs[0]
   #plt.plot([p[0] for p in reduced_vecs[:30]], [p[1] for p in reduced_vecs[:30]], 'ro')
+  
 
   # Graph all of the points, where points corresponding to the same digit will have the same color.
   colors = ['r', 'b', 'g', 'c', 'm', 'k', 'y', (.2, .2, .2), (.4, 0, .5), (.8, .2, 0)]
@@ -68,6 +73,6 @@ def visualize():
   plt.show()
   
 if __name__ == "__main__":
-  main()
+  #main()
   visualize()
   
