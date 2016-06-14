@@ -36,4 +36,12 @@ actual -- predicted
 Average MSE error over test set: 0.300875
 ```
 
-One will see that some of the predicted values approach the corresponding actual values.
+One will see that some of the predicted values approach the corresponding actual values and the MSE error should go down.
+
+# Comparison with PCA on toy example.
+
+Run:
+
+'python compare_autoencoder_lsa.py'
+
+A toy dataset of 7 points is augmented to 1000 points by jittering with Gaussian noise. This is then used to train an autoencoder with a hidden dimension of 2. PCA is also applied. These two methods are used to embed the dataset which are then plotted. 
