@@ -60,16 +60,17 @@ class Autoencoder(object):
   learning_coef - tunable parameter that determines how quickly the model learns
   '''
   def sgd(self, training_data, epochs, batch_size, learning_coef, test_data=None):
+    training_data_ = copy.deepcopy(training_data)
     track_progress = False
     if test_data is not None:
       track_progress = True
-    n = len(training_data)
+    n = len(training_data_)
     for i in xrange(epochs):
       # Randomize the training data so the order that the data is given in
       # does not influence the training.
-      random.shuffle(training_data)
+      random.shuffle(training_data_)
       # Pre-process training data into batches.
-      batches = [training_data[batch_index:batch_index+batch_size]
+      batches = [training_data_[batch_index:batch_index+batch_size]
                  for batch_index in xrange(0, n, batch_size)]
       # Run an iteration of stochastic gradient descent for each batch.
       j = 0
