@@ -7,6 +7,7 @@ A module that implements an autoencoder using a feedforward neural network as a 
 
 '''
 
+import copy
 import numpy as np
 import random
 
@@ -39,7 +40,7 @@ class Autoencoder(object):
           the embedding for the input
   '''
   def feedforward(self, inputs, embed=False):
-    a = inputs
+    a = copy.deepcopy(inputs)
     i = 0
     for b, w in zip(self.biases, self.weights):
       if i == len(self.biases)-1 and embed:
@@ -73,7 +74,7 @@ class Autoencoder(object):
       # Run an iteration of stochastic gradient descent for each batch.
       j = 0
       for batch in batches:
-        print "epoch: %i, batch number: %i" % (i, j)
+        #print "epoch: %i, batch number: %i" % (i, j)
         j = j + 1
         self.sgd_helper(batch, learning_coef)
       #print "epoch: %i" % i
