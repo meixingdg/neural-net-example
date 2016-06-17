@@ -62,14 +62,11 @@ def main():
   fig = plt.figure()
   plt.subplot(211)
   plt.title("PCA")
-  # TODO: see if values between the two match?
   # Plot embeddings of the documents from the autoencoder and PCA on same graph.
   # Embed data using PCA.
   print "Embedding data using PCA..."
   pca_embed = np.dot(data_aug, v.transpose())
-  print pca_embed[0]
   plt.plot([p[0] for p in pca_embed], [p[1] for p in pca_embed], 'bx')
-  #plt.show()
 
   # Embed data using the autoencoder.
   print "Embedding data using autoencoder..."
